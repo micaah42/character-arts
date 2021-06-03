@@ -151,11 +151,28 @@ QString TextGenerator::charContext() const { return mCharContext; }
 
 quint32 TextGenerator::cols() const { return mCols; }
 
-void TextGenerator::setCols(const quint32& cols) { mCols = cols; }
+void TextGenerator::setCols(const quint32& cols)
+{
+    mCols = cols;
+
+    delete []  mCharImageA;
+    mCharImageA = new quint8[mCols * mRows];
+    delete [] mCharImageB;
+    mCharImageB = new quint8[mCols * mRows];
+}
 
 quint32 TextGenerator::rows() const { return mRows; }
 
-void TextGenerator::setRows(const quint32& rows) { mRows = rows; }
+void TextGenerator::setRows(const quint32& rows)
+{
+    mRows = rows;
+
+    delete []  mCharImageA;
+    mCharImageA = new quint8[mCols * mRows];
+    delete [] mCharImageB;
+    mCharImageB = new quint8[mCols * mRows];
+}
+
 
 QVariantList TextGenerator::stepChances() {
     QVariantList result;
