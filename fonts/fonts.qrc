@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Cascadia.ttf</file>
+        <file>saxmono.ttf</file>
+    </qresource>
+</RCC>
