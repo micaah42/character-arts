@@ -11,7 +11,7 @@ Window {
     width: 840
     height: 480
     visible: true
-    title: qsTr("Letters")
+    title: qsTr("Character Arts")
 
     color: "black";
 
@@ -26,6 +26,8 @@ Window {
         font.family: "saxmono";
         font.pixelSize: TextGenerator.fontSize;
         wrapMode: "NoWrap";
+        renderType: Text.NativeRendering;
+        antialiasing: false;
 
         text: TextGenerator.text;
 
