@@ -41,7 +41,7 @@ class TextGenerator : public QObject {
 
     QVariantList stepChances();
     void setStepChances(QVariantList stepChances);
-    void setStepChances(double downChance, double equalChance, double upChance);
+    void setStepChances(float downChance, float upChance);
 
     quint32 resetChance() const;
     void setResetChance(const quint32& resetChance);
@@ -79,7 +79,7 @@ class TextGenerator : public QObject {
 
     // step chances (wether the char goes up, down or stays the same within the
     // context)
-    float* mStepChances;
+    float mStepChances[2];
 
     // random reset chance (per char)
     double mResetChance;
@@ -89,7 +89,9 @@ class TextGenerator : public QObject {
     QTimer mTimer;
 
     // Random Generation
-    quint32 distributedChoice(float* dist, quint32 size);
+    quint8 distributedChoice(float dist[2], quint8 size);
+    quint8 makeStep(quint8 &before);
+
     QRandomGenerator mRandomGenerator;
 };
 

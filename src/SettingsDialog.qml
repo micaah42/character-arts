@@ -38,7 +38,7 @@ Window {
             ColumnLayout {
                 id: chances
                 width: parent.width - 6;
-                x: 3; y: 3;
+                x: 5; y: 5;
 
                 Text {
                     text: "## Chances";
@@ -46,6 +46,16 @@ Window {
                 }
 
                 TriangleSelector {}
+
+                // num resets
+                LabeledTextField {
+                    text: "Resets:"
+                    startValue: TextGenerator.resetChance;
+                    placeholderText:  "resets per frame, e.g. 21";
+                    onInputChanged: {
+                        TextGenerator.resetChance = input;
+                    }
+                }
             }
 
         }
@@ -63,7 +73,7 @@ Window {
             ColumnLayout {
                 id: display
                 width: parent.width - 6;
-                x: 3; y: 3;
+                x: 5; y: 5;
 
                 Text {
                     text: "## Display Settings";
@@ -73,6 +83,7 @@ Window {
                 // fps
                 LabeledTextField {
                     text: "FPS:";
+                    startValue: TextGenerator.fps;
                     placeholderText: "fps, e.g. 60";
                     onInputChanged: {
                         TextGenerator.fps = input;
@@ -81,7 +92,8 @@ Window {
 
                 // cols
                 LabeledTextField {
-                    text: "Columns:"
+                    text: "Columns:";
+                    startValue: TextGenerator.cols;
                     placeholderText: "num cols, e.g. 420";
                     onInputChanged: {
                         TextGenerator.cols = input;
@@ -90,25 +102,18 @@ Window {
 
                 // rows
                 LabeledTextField {
-                    text: "Rows:"
+                    text: "Rows:";
+                    startValue: TextGenerator.rows;
                     placeholderText: "num row, e.g. 69";
                     onInputChanged: {
                         TextGenerator.rows = input;
                     }
                 }
 
-                // num resets
-                LabeledTextField {
-                    text: "Resets:"
-                    placeholderText:  "resets per frame, e.g. 21";
-                    onInputChanged: {
-                        TextGenerator.resetChance = input;
-                    }
-                }
-
                 // fontsize
                 LabeledTextField {
-                    text: "Font Size:"
+                    text: "Font Size:";
+                    startValue: TextGenerator.fontSize;
                     placeholderText:  "font size in px, e.g. 12";
                     onInputChanged: {
                         TextGenerator.fontSize = input;

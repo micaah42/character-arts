@@ -8,6 +8,7 @@ RowLayout {
     width: parent.width
     property string text: "";
     property string input: "";
+    property string startValue: "";
     property string placeholderText: "";
     property var validator: IntValidator {bottom: 1; top: 1000000};
 
@@ -18,6 +19,7 @@ RowLayout {
 
     TextField {
         id: field
+        text: layout.startValue;
         Layout.preferredWidth: 2 * layout.width / 3 - 3;
         placeholderText: layout.placeholderText;
         onTextEdited: if(acceptableInput) layout.input = text;

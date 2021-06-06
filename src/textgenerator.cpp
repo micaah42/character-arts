@@ -15,12 +15,11 @@ TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* 
         mCharImageA[i] = 0;
 
     setFps(25);
-    setCharContext("  ...-~=+*></|\\(|){|}08&$#@");
+    setCharContext(" ..-~=+*><//|\\(){}08&$#");
     mNumResets = 15;
 
     mFrameId = 0;
-    mStepChances = new float[3];
-    setStepChances(1. / 3., 1. / 3., 1. / 3.);
+    setStepChances(1. / 3., 1. / 3.);
     connect(&mTimer, &QTimer::timeout, this, &TextGenerator::repaintCharMap);
     mTimer.start();
 }
@@ -28,10 +27,9 @@ TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* 
 TextGenerator::~TextGenerator() {
     delete[] mCharImageA;
     delete[] mCharImageB;
-    delete[] mStepChances;
 }
 
-quint32 TextGenerator::distributedChoice(float* dist, quint32 size) {
+quint8 TextGenerator::distributedChoice(float dist[3], quint8 size) {
     float randD = mRandomGenerator.generateDouble();
     quint8 minPossible, maxPossible, mid;
     minPossible = 0;
@@ -45,6 +43,25 @@ quint32 TextGenerator::distributedChoice(float* dist, quint32 size) {
         // qDebug() << dist[minPossible] << "<=" << randD << "<=" << dist[maxPossible - 1];
     }
     return minPossible;
+}
+
+quint8 TextGenerator::makeStep(quint8 &before)
+{
+    quint8 ret;
+    float randD = mRandomGenerator.generateDouble();
+    if (randD < mStepChances[0])
+        ret = before + 1;
+    else if (randD < mStepChances[1])
+        ret = before - 1;
+    else
+        ret = before;
+
+    if (ret < 0)
+        ret = 0;
+    else if (ret >= mCharContext.size())
+        ret = mCharContext.size() - 1;
+
+    return ret;
 }
 
 quint8 TextGenerator::fps() const { return 1000 / mTimer.interval(); }
@@ -190,10 +207,8 @@ void TextGenerator::setStepChances(QVariantList stepChances) {
     emit stepChancesChanged();
 }
 
-void TextGenerator::setStepChances(double downChance, double equalChance, double upChance) {
-    double sum = downChance + equalChance + upChance;
-    mStepChances[0] = downChance / sum;
-    mStepChances[1] = mStepChances[0] + equalChance / sum;
-    mStepChances[2] = mStepChances[1] + upChance / sum;
+void TextGenerator::setStepChances(float up, float down) {
+    mStepChances[0] = up;
+    mStepChances[1] = up + down;
     emit stepChancesChanged();
 }
