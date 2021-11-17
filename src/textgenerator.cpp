@@ -1,18 +1,16 @@
 #include "textgenerator.h"
 
+#include <stdlib.h>
 #include <QDebug>
+#include <QFutureWatcher>
 #include <QRandomGenerator>
 #include <QVector>
-#include <stdlib.h>
+#include <QtConcurrent/QtConcurrentMap>
 
 TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* parent) : QObject(parent) {
     mCols = cols;
     mRows = rows;
-
-    mCharImageA = new quint8[cols * rows];
-    mCharImageB = new quint8[cols * rows];
-    for (quint16 i = 0; i < mCols * mRows; i++)
-        mCharImageA[i] = 0;
+    initCharMaps();
 
     setFps(25);
     setCharContext(" ..-~=+*><//|\\(){}08&$#");
@@ -25,8 +23,6 @@ TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* 
 }
 
 TextGenerator::~TextGenerator() {
-    delete[] mCharImageA;
-    delete[] mCharImageB;
 }
 
 quint8 TextGenerator::distributedChoice(float dist[3], quint8 size) {
@@ -79,16 +75,27 @@ void TextGenerator::setCharContext(const QString& chars) {
 }
 
 void TextGenerator::repaintCharMap() {
-    quint8* newMap = (0 == mFrameId % 2) ? mCharImageA : mCharImageB;
-    quint8* oldMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
+    Matrix &newMap = (0 == mFrameId % 2) ? mCharImageA : mCharImageB;
+    Matrix &oldMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
 
-    //    for (quint32 i = 0; i < mCols * mRows; i++)
-    //        newMap[i] = 0;
+    QFutureWatcher<void> watcher;
+    connect(&watcher, &QFutureWatcher<void>::finished, &watcher, [this, newMap]() {
+        qDebug() << "done updating char maps!";
+        // make random resets
+        quint32 randX, randY;
+        for (quint32 i = 0; i < mNumResets; i++) {
+            randX = rand() % mCols;
+            randY = rand() % mRows;
+            // newMap[randX][randY].a = mCharContext.length() - 1; // rand() % mCharContext.length();
+        }
 
-    // For each pixel
-    for (quint32 j = 0; j < mRows; j++) {
-        for (quint32 i = 0; i < mCols; i++) {
+        mFrameId++;
+        emit textChanged();
+    });
 
+    QFuture<void> future = QtConcurrent::map(newMap, [this, oldMap](QList<MatrixEntry> col) {
+        quint32 i = col.first().x;
+        for (quint32 j = 0; j < mRows; j++) {
             // randomly choose a neighbour
             bool neighbour_right, neighbour_down;
 
@@ -112,39 +119,31 @@ void TextGenerator::repaintCharMap() {
             quint32 neighbourY = neighbour_down ? j + 1 : j - 1;
 
             // apply transition to neighbour
-            quint8 oldChar = (rand() % 2) == 1 ? oldMap[neighbourX + neighbourY * mCols] : oldMap[i + j * mCols];
-            quint8 newChar;
+            quint8 oldChar = (rand() % 2) == 1 ? oldMap[neighbourX][neighbourY].a : oldMap[i][j].a;
 
-            quint32 trans = distributedChoice(mStepChances, 3);
+            qint8 step = distributedChoice(mStepChances, 3) - 1;
             // if old char is edge char, instead of invalid transition we stay equal
-            if (oldChar == 0 && trans == 0)
-                trans = 2;
-            else if (oldChar == mCharContext.length() - 1 && trans == 2)
-                trans = 2;
+            if (oldChar == 0 && step == -1)
+                step = 0;
+            else if (oldChar == mCharContext.length() - 1 && step == 1)
+                step = 0;
 
-            newChar = oldChar + trans - 1;
-            newMap[i + j * mCols] = newChar;
+            quint8 newChar = oldChar + step;
+            Q_ASSERT(newChar < mCharContext.size());
+            qDebug() << "set col[" << j << "]" << newChar;
+            col[j].a = newChar;
+            qDebug() << "done updating col";
         }
-    }
-
-    // make random resets
-    quint32 randX, randY;
-    for (quint32 i = 0; i < mNumResets; i++) {
-        randX = rand() % mCols;
-        randY = rand() % mRows;
-        newMap[randX + randY * mCols] = mCharContext.length() - 1; // rand() % mCharContext.length();
-    }
-
-    mFrameId++;
-    emit textChanged();
+    });
+    watcher.setFuture(future);
 }
 
 QString TextGenerator::text() {
     QString result = "";
-    quint8* outMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
+    Matrix &outMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
     for (quint32 j = 0; j < mRows; j++) {
         for (quint32 i = 0; i < mCols; i++) {
-            quint8 val = outMap[i + j * mCols];
+            quint8 val = outMap[i][j].a;
             result += mCharContext[val];
         }
         result += '\n';
@@ -171,11 +170,7 @@ quint32 TextGenerator::cols() const { return mCols; }
 void TextGenerator::setCols(const quint32& cols)
 {
     mCols = cols;
-
-    delete []  mCharImageA;
-    mCharImageA = new quint8[mCols * mRows];
-    delete [] mCharImageB;
-    mCharImageB = new quint8[mCols * mRows];
+    initCharMaps();
 }
 
 quint32 TextGenerator::rows() const { return mRows; }
@@ -183,19 +178,13 @@ quint32 TextGenerator::rows() const { return mRows; }
 void TextGenerator::setRows(const quint32& rows)
 {
     mRows = rows;
-
-    delete []  mCharImageA;
-    mCharImageA = new quint8[mCols * mRows];
-    delete [] mCharImageB;
-    mCharImageB = new quint8[mCols * mRows];
+    initCharMaps();
 }
-
 
 QVariantList TextGenerator::stepChances() {
     QVariantList result;
     result.append(mStepChances[0]);
     result.append(mStepChances[1]);
-    result.append(mStepChances[2]);
     return result;
 }
 
@@ -203,7 +192,6 @@ void TextGenerator::setStepChances(QVariantList stepChances) {
     Q_ASSERT(stepChances.length() == 3);
     mStepChances[0] = stepChances[0].toDouble();
     mStepChances[1] = stepChances[1].toDouble() + mStepChances[0];
-    mStepChances[2] = stepChances[2].toDouble() + mStepChances[1];
     emit stepChancesChanged();
 }
 
@@ -211,4 +199,19 @@ void TextGenerator::setStepChances(float up, float down) {
     mStepChances[0] = up;
     mStepChances[1] = up + down;
     emit stepChancesChanged();
+}
+
+void TextGenerator::initCharMaps()
+{
+    mCharImageA.clear();
+    mCharImageB.clear();
+
+    for (quint32 i = 0; i < cols(); i++) {
+        QList<MatrixEntry> col;
+        for (quint32 j = 0; j < rows(); j++) {
+            col.append(MatrixEntry(0, i, j));
+        }
+        mCharImageA.append(col);
+        mCharImageB.append(col);
+    }
 }

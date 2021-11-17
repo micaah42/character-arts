@@ -1,12 +1,28 @@
 #ifndef TEXTGENERATOR_H
 #define TEXTGENERATOR_H
 
+#include <QMatrix>
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QRandomGenerator>
 #include <QTimer>
 #include <QVariantList>
-#include <QVector>
+
+struct MatrixEntry
+{
+    quint8 a;
+    quint32 x;
+    quint32 y;
+
+    MatrixEntry(quint8 _a, quint32 _x, quint32 _y)
+    {
+        a = _a;
+        x = _x;
+        y = _y;
+    }
+};
+
+typedef QList<QList<MatrixEntry>> Matrix;
 
 class TextGenerator : public QObject {
     Q_OBJECT
@@ -71,8 +87,9 @@ class TextGenerator : public QObject {
     double mFontSize;
 
     // the 'images' (two buffers to avoid reallocation)
-    quint8* mCharImageA;
-    quint8* mCharImageB;
+    Matrix mCharImageA;
+    Matrix mCharImageB;
+    void initCharMaps();
 
     // interpretation of chars - basically a list that puts similar chars together
     QString mCharContext;
