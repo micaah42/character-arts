@@ -14,7 +14,7 @@ Window {
     height: 380;
     // border.color: "white";
     // border.width: 3;
-    color: "black";
+    color: "#bdbcbd";
     // radius: 5;
 
     // capture mouse from background

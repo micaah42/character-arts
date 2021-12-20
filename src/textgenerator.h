@@ -3,26 +3,13 @@
 
 #include <QMatrix>
 #include <QObject>
-#include <QQmlApplicationEngine>
-#include <QRandomGenerator>
-#include <QTimer>
 #include <QVariantList>
+#include <QRandomGenerator>
+#include <QQmlApplicationEngine>
+#include <QElapsedTimer>
+#include <QTimer>
 
-struct MatrixEntry
-{
-    quint8 a;
-    quint32 x;
-    quint32 y;
-
-    MatrixEntry(quint8 _a, quint32 _x, quint32 _y)
-    {
-        a = _a;
-        x = _x;
-        y = _y;
-    }
-};
-
-typedef QList<QList<MatrixEntry>> Matrix;
+typedef QList<QList<int>> Matrix;
 
 class TextGenerator : public QObject {
     Q_OBJECT
@@ -31,58 +18,74 @@ class TextGenerator : public QObject {
     Q_PROPERTY(QString text READ text NOTIFY textChanged)
 
     // settings
-    Q_PROPERTY(int fps READ fps WRITE setFps)
-    Q_PROPERTY(int cols READ cols WRITE setCols)
-    Q_PROPERTY(int rows READ rows WRITE setRows)
+    Q_PROPERTY(int fps READ fps WRITE setFps NOTIFY fpsChanged)
+    Q_PROPERTY(int cols READ cols WRITE setCols NOTIFY colsChanged)
+    Q_PROPERTY(int rows READ rows WRITE setRows NOTIFY rowsChanged)
     Q_PROPERTY(double fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
-    Q_PROPERTY(quint32 resetChance READ resetChance WRITE setResetChance)
+    Q_PROPERTY(int resetChance READ resetChance WRITE setResetChance NOTIFY resetChanceChanged)
     Q_PROPERTY(QVariantList stepChances READ stepChances WRITE setStepChances NOTIFY stepChancesChanged)
-    Q_PROPERTY(QString charContext READ charContext WRITE setCharContext)
+    Q_PROPERTY(QString charContext READ charContext WRITE setCharContext NOTIFY charContextChanged)
+    Q_PROPERTY(double measuredFps READ measuredFps NOTIFY measuredFpsChanged)
 
     // char filter: move charcontext to own class
 
   public:
-    explicit TextGenerator(const quint32& cols, const quint32& rows, QObject* parent = nullptr);
+    explicit TextGenerator(const int cols, const int rows, QObject* parent = nullptr);
     ~TextGenerator();
 
     // SETTINGS
-    quint8 fps() const;
-    void setFps(quint8 fps);
+    int fps() const;
+    void setFps(int fps);
 
-    quint32 cols() const;
-    void setCols(const quint32& cols);
+    int cols() const;
+    void setCols(const int cols);
 
-    quint32 rows() const;
-    void setRows(const quint32& rows);
+    int rows() const;
+    void setRows(const int rows);
 
     QVariantList stepChances();
     void setStepChances(QVariantList stepChances);
     void setStepChances(float downChance, float upChance);
 
-    quint32 resetChance() const;
-    void setResetChance(const quint32& resetChance);
+    int resetChance() const;
+    void setResetChance(const int resetChance);
 
     QString charContext() const;
     void setCharContext(const QString& chars);
 
     // DRAWING
-    void repaintCharMap();
+    void repaintCharMatrix();
+    Matrix repaintCharMatrixCols(int start, int end, Matrix &src);
     QString text();
 
     double fontSize() const;
     void setFontSize(double fontSize);
 
-  signals:
+    double measuredFps() const;
+
+signals:
     void textChanged();
     void stepChancesChanged();
     void fontSizeChanged();
 
-  private:
+    void measuredFpsChanged();
+
+    void fpsChanged();
+
+    void colsChanged();
+
+    void rowsChanged();
+
+    void resetChanceChanged();
+
+    void charContextChanged();
+
+private:
     // Generation Parameters:
-    quint32 mNumResets;
+    int mNumResets;
 
     // image dimensions
-    quint32 mCols, mRows;
+    int mCols, mRows;
     // and font size
     double mFontSize;
 
@@ -92,7 +95,7 @@ class TextGenerator : public QObject {
     void initCharMaps();
 
     // interpretation of chars - basically a list that puts similar chars together
-    QString mCharContext;
+    QList<QChar> mCharContext;
 
     // step chances (wether the char goes up, down or stays the same within the
     // context)
@@ -102,14 +105,17 @@ class TextGenerator : public QObject {
     double mResetChance;
 
     // Animation stuff
-    quint32 mFrameId;
+    int mFrameId;
     QTimer mTimer;
 
     // Random Generation
-    quint8 distributedChoice(float dist[2], quint8 size);
-    quint8 makeStep(quint8 &before);
+    int distributedChoice(float dist[2], int size);
+    int makeStep(int before);
 
-    QRandomGenerator mRandomGenerator;
+    bool mRedrawing;
+    QElapsedTimer mFpsTimer;
+    double mMeasuredFps;
+    int m_fps;
 };
 
 // ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++ ++++

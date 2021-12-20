@@ -2,12 +2,12 @@
 
 #include <stdlib.h>
 #include <QDebug>
+#include <QVector>
 #include <QFutureWatcher>
 #include <QRandomGenerator>
-#include <QVector>
-#include <QtConcurrent/QtConcurrentMap>
+#include <QtConcurrent/QtConcurrentRun>
 
-TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* parent) : QObject(parent) {
+TextGenerator::TextGenerator(const int cols, const int rows, QObject* parent) : QObject(parent) {
     mCols = cols;
     mRows = rows;
     initCharMaps();
@@ -15,36 +15,33 @@ TextGenerator::TextGenerator(const quint32& cols, const quint32& rows, QObject* 
     setFps(25);
     setCharContext(" ..-~=+*><//|\\(){}08&$#");
     mNumResets = 15;
+    setFontSize(6);
 
     mFrameId = 0;
     setStepChances(1. / 3., 1. / 3.);
-    connect(&mTimer, &QTimer::timeout, this, &TextGenerator::repaintCharMap);
+
+
+    connect(&mTimer, &QTimer::timeout, this, &TextGenerator::repaintCharMatrix);
     mTimer.start();
 }
 
 TextGenerator::~TextGenerator() {
 }
 
-quint8 TextGenerator::distributedChoice(float dist[3], quint8 size) {
-    float randD = mRandomGenerator.generateDouble();
-    quint8 minPossible, maxPossible, mid;
-    minPossible = 0;
-    maxPossible = size;
-    while (minPossible != maxPossible) {
-        mid = (minPossible + maxPossible) / 2;
-        if (randD > dist[mid])
-            minPossible = mid + 1;
-        else
-            maxPossible = mid;
-        // qDebug() << dist[minPossible] << "<=" << randD << "<=" << dist[maxPossible - 1];
-    }
-    return minPossible;
+int TextGenerator::distributedChoice(float* dist, int size) {
+    float randD = rand() / RAND_MAX;
+    if (randD < dist[0])
+        return 0;
+    else if (randD < dist[1])
+        return 1;
+    else
+        return 2;
 }
 
-quint8 TextGenerator::makeStep(quint8 &before)
+int TextGenerator::makeStep(int before)
 {
-    quint8 ret;
-    float randD = mRandomGenerator.generateDouble();
+    int ret;
+    float randD = QRandomGenerator(time(0)).generateDouble();
     if (randD < mStepChances[0])
         ret = before + 1;
     else if (randD < mStepChances[1])
@@ -60,42 +57,74 @@ quint8 TextGenerator::makeStep(quint8 &before)
     return ret;
 }
 
-quint8 TextGenerator::fps() const { return 1000 / mTimer.interval(); }
+int TextGenerator::fps() const { return 1000 / mTimer.interval(); }
 
-void TextGenerator::setFps(quint8 fps) { mTimer.setInterval(1000 / fps); }
+void TextGenerator::setFps(int fps) {
+    if (fps < 1) {
+        fps = 1;
+    }
+    mTimer.setInterval(1000 / fps);
+
+    emit fpsChanged();
+}
 
 void TextGenerator::setCharContext(const QString& chars) {
     if (chars.length() < 2)
         qFatal("too few chars");
 
     mCharContext.clear();
-    for (quint16 i = 0; i < chars.length(); i++) {
-        mCharContext.push_back(chars[i].toLatin1());
+    for (QChar c: chars) {
+        mCharContext.append(c);
     }
 }
 
-void TextGenerator::repaintCharMap() {
-    Matrix &newMap = (0 == mFrameId % 2) ? mCharImageA : mCharImageB;
-    Matrix &oldMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
+void TextGenerator::repaintCharMatrix() {
+    if(mRedrawing)
+        return;
+    else if (mCols == 0 || mRows == 0)
+        return;
+    else {
+        mFpsTimer.start();
+        mRedrawing = true;
+    }
 
-    QFutureWatcher<void> watcher;
-    connect(&watcher, &QFutureWatcher<void>::finished, &watcher, [this, newMap]() {
-        qDebug() << "done updating char maps!";
-        // make random resets
-        quint32 randX, randY;
-        for (quint32 i = 0; i < mNumResets; i++) {
-            randX = rand() % mCols;
-            randY = rand() % mRows;
-            // newMap[randX][randY].a = mCharContext.length() - 1; // rand() % mCharContext.length();
-        }
+    Matrix &dst = mFrameId % 2 ? mCharImageA : mCharImageB;
+    Matrix &src = mFrameId % 2 ? mCharImageB : mCharImageA;
 
-        mFrameId++;
-        emit textChanged();
-    });
+    int numThreads = 3;
+    QList<QFuture<Matrix>> futures;
+    for (int i = 0; i < numThreads; i++) {
+        int start = i * (mCols / numThreads);
+        int end = i < numThreads - 1 ? (i + 1) * (mCols / numThreads) : mCols;
+        QFuture<Matrix> future = QtConcurrent::run(this, &TextGenerator::repaintCharMatrixCols, start, end, src);
+        futures.append(future);
+    }
 
-    QFuture<void> future = QtConcurrent::map(newMap, [this, oldMap](QList<MatrixEntry> col) {
-        quint32 i = col.first().x;
-        for (quint32 j = 0; j < mRows; j++) {
+    dst.clear();
+    for (auto future : futures) {
+        future.waitForFinished();
+        dst.append(future.result());
+    }
+
+    // make random resets
+    int randX, randY;
+    for (int i = 0; i < mNumResets; i++) {
+        randX = rand() % mCols;
+        randY = rand() % mRows;
+
+        dst[randX][randY] = mCharContext.size() - 1; // rand() % mCharContext.length();
+    }
+
+    emit textChanged();
+
+}
+
+Matrix TextGenerator::repaintCharMatrixCols(int start, int end, Matrix &src)
+{
+    Matrix ret;
+    for (int i = start; i < end; i++) {
+        ret.append(QList<int>());
+        for (int j = 0; j < mRows; j++) {
             // randomly choose a neighbour
             bool neighbour_right, neighbour_down;
 
@@ -115,40 +144,44 @@ void TextGenerator::repaintCharMap() {
             else
                 neighbour_right = (rand() % 2) == 1;
 
-            quint32 neighbourX = neighbour_right ? i + 1 : i - 1;
-            quint32 neighbourY = neighbour_down ? j + 1 : j - 1;
+            int neighbourX = neighbour_right ? i + 1 : i - 1;
+            int neighbourY = neighbour_down ? j + 1 : j - 1;
 
             // apply transition to neighbour
-            quint8 oldChar = (rand() % 2) == 1 ? oldMap[neighbourX][neighbourY].a : oldMap[i][j].a;
+            int oldChar = (rand() % 2) == 1 ? src[neighbourX][neighbourY] : src[i][j];
 
-            qint8 step = distributedChoice(mStepChances, 3) - 1;
+            int step = distributedChoice(mStepChances, 3) - 1;
+            int newChar = oldChar + step;
             // if old char is edge char, instead of invalid transition we stay equal
-            if (oldChar == 0 && step == -1)
-                step = 0;
-            else if (oldChar == mCharContext.length() - 1 && step == 1)
-                step = 0;
+            if (newChar > mCharContext.size() - 1)
+                newChar = mCharContext.size() - 1;
+            else if (newChar < 0)
+                newChar = 0;
 
-            quint8 newChar = oldChar + step;
-            Q_ASSERT(newChar < mCharContext.size());
-            qDebug() << "set col[" << j << "]" << newChar;
-            col[j].a = newChar;
-            qDebug() << "done updating col";
+            ret.last().append(newChar);
         }
-    });
-    watcher.setFuture(future);
+    }
+
+    return ret;
 }
 
 QString TextGenerator::text() {
     QString result = "";
-    Matrix &outMap = (0 == mFrameId % 2) ? mCharImageB : mCharImageA;
-    for (quint32 j = 0; j < mRows; j++) {
-        for (quint32 i = 0; i < mCols; i++) {
-            quint8 val = outMap[i][j].a;
+    Matrix &outMap = (mFrameId % 2) ? mCharImageA : mCharImageB;
+    mFrameId++;
+    for (int j = 0; j < mRows; j++) {
+        for (int i = 0; i < mCols; i++) {
+            Q_ASSERT(outMap[i][j] >= 0 && outMap[i][j] < mCharContext.size());
+            int val = outMap[i][j];
             result += mCharContext[val];
         }
         result += '\n';
     }
 
+    double newFps = 60000 / mFpsTimer.elapsed();
+    mMeasuredFps = 0.5 * newFps + 0.5 * mMeasuredFps;
+    emit measuredFpsChanged();
+    mRedrawing = false;
     return result;
 }
 
@@ -159,23 +192,35 @@ void TextGenerator::setFontSize(double fontSize) {
     emit fontSizeChanged();
 }
 
-quint32 TextGenerator::resetChance() const { return mNumResets; }
+int TextGenerator::resetChance() const { return mNumResets; }
 
-void TextGenerator::setResetChance(const quint32& resetChance) { mNumResets = resetChance; }
+void TextGenerator::setResetChance(const int resetChance) { mNumResets = resetChance; }
 
-QString TextGenerator::charContext() const { return mCharContext; }
-
-quint32 TextGenerator::cols() const { return mCols; }
-
-void TextGenerator::setCols(const quint32& cols)
-{
-    mCols = cols;
-    initCharMaps();
+QString TextGenerator::charContext() const {
+    QString ret = "";
+    for (auto c : mCharContext) {
+        ret.append(c);
+    }
+    return ret;
 }
 
-quint32 TextGenerator::rows() const { return mRows; }
+int TextGenerator::cols() const { return mCols; }
 
-void TextGenerator::setRows(const quint32& rows)
+void TextGenerator::setCols(const int cols)
+{
+    if (cols < 1) {
+        mCols = 1;
+    }
+    else
+        mCols = cols;
+
+    initCharMaps();
+    emit colsChanged();
+}
+
+int TextGenerator::rows() const { return mRows; }
+
+void TextGenerator::setRows(const int rows)
 {
     mRows = rows;
     initCharMaps();
@@ -206,12 +251,17 @@ void TextGenerator::initCharMaps()
     mCharImageA.clear();
     mCharImageB.clear();
 
-    for (quint32 i = 0; i < cols(); i++) {
-        QList<MatrixEntry> col;
-        for (quint32 j = 0; j < rows(); j++) {
-            col.append(MatrixEntry(0, i, j));
+    for (int i = 0; i < cols(); i++) {
+        QList<int> col;
+        for (int j = 0; j < rows(); j++) {
+            col.append(0);
         }
         mCharImageA.append(col);
         mCharImageB.append(col);
     }
+}
+
+double TextGenerator::measuredFps() const
+{
+    return mMeasuredFps;
 }

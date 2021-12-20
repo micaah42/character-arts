@@ -100,6 +100,6 @@ ColumnLayout {
         elide: Text.ElideMiddle
         text: (100 * TextGenerator.stepChances[0]).toFixed(0) + " (down), "
               + (100 * (TextGenerator.stepChances[1] - TextGenerator.stepChances[0])).toFixed(0) + " (stay), "
-              + (100 * (TextGenerator.stepChances[2] - TextGenerator.stepChances[1])).toFixed(0) + " (up)";
+              + (100 * (1 - TextGenerator.stepChances[1])).toFixed(0) + " (up)";
     }
 }
