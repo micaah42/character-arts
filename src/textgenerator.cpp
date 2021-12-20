@@ -7,14 +7,14 @@
 #include <QRandomGenerator>
 #include <QtConcurrent/QtConcurrentRun>
 
-TextGenerator::TextGenerator(const int cols, const int rows, QObject* parent) : QObject(parent) {
-    mCols = cols;
-    mRows = rows;
+TextGenerator::TextGenerator(QObject* parent) : QObject(parent) {
+    mCols = 540;
+    mRows = 140;
     initCharMaps();
 
     setFps(25);
     setCharContext(" ..-~=+*><//|\\(){}08&$#");
-    mNumResets = 15;
+    mNumResets = 150;
     setFontSize(6);
 
     mFrameId = 0;
@@ -125,31 +125,10 @@ Matrix TextGenerator::repaintCharMatrixCols(int start, int end, Matrix &src)
     for (int i = start; i < end; i++) {
         ret.append(QList<int>());
         for (int j = 0; j < mRows; j++) {
-            // randomly choose a neighbour
-            bool neighbour_right, neighbour_down;
+            bool moveJ = rand() % 3 == 0 && j != 0;
+            bool moveI = rand() % 4 == 0 && i != 0;
 
-            // up/down
-            if (j == 0)
-                neighbour_down = true;
-            else if (j == (mRows - 1))
-                neighbour_down = false;
-            else
-                neighbour_down = (rand() % 2) == 1;
-
-            // left/right
-            if (i == 0)
-                neighbour_right = true;
-            else if (i == (mCols - 1))
-                neighbour_right = false;
-            else
-                neighbour_right = (rand() % 2) == 1;
-
-            int neighbourX = neighbour_right ? i + 1 : i - 1;
-            int neighbourY = neighbour_down ? j + 1 : j - 1;
-
-            // apply transition to neighbour
-            int oldChar = (rand() % 2) == 1 ? src[neighbourX][neighbourY] : src[i][j];
-
+            int oldChar = src[i - moveI][j - moveJ];
             int step = distributedChoice(mStepChances, 3) - 1;
             int newChar = oldChar + step;
             // if old char is edge char, instead of invalid transition we stay equal

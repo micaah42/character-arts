@@ -10,11 +10,13 @@ Window {
     title: "Options";
     flags: Qt.Dialog;
 
+    property alias showFps: showFpsCtrl.checked
+
     width: 750;
     height: 380;
     // border.color: "white";
     // border.width: 3;
-    color: "#bdbcbd";
+    color: "#242424";
     // radius: 5;
 
     // capture mouse from background
@@ -23,22 +25,22 @@ Window {
     }
 
     RowLayout {
-        x: 5; y: 5;
-        // width: parent.width / 3;
+        anchors.fill: parent
+        anchors.margins: 10
 
         // Chances
         Rectangle {
-            implicitWidth: 200;
-            implicitHeight: options.height - 10;
-            color: "#aaaacd";
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: "#004200";
             radius: 5;
-            border.color: "black";
+            border.color: "#202020";
             border.width: 2;
 
             ColumnLayout {
                 id: chances
-                width: parent.width - 6;
-                x: 5; y: 5;
+                anchors.fill: parent
+                anchors.margins: 10
 
                 Text {
                     text: "## Chances";
@@ -61,22 +63,22 @@ Window {
         }
 
 
-        // Display Settings
+        // Text Settings
         Rectangle {
-            implicitWidth: 250;
-            implicitHeight: options.height - 10;
-            color: "#bbbbcd";
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: "#004200";
             radius: 5;
-            border.color: "black";
+            border.color: "#202020";
             border.width: 2;
 
             ColumnLayout {
-                id: display
-                width: parent.width - 6;
-                x: 5; y: 5;
+                id: text
+                anchors.fill: parent
+                anchors.margins: 10
 
                 Text {
-                    text: "## Display Settings";
+                    text: "## Text Settings";
                     textFormat: Text.MarkdownText;
                 }
 
@@ -118,6 +120,40 @@ Window {
                     onInputChanged: {
                         TextGenerator.fontSize = input;
                     }
+                }
+            }
+        }
+
+        // Display Settings
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: "#004200";
+            radius: 5;
+            border.color: "#202020";
+            border.width: 2;
+
+            ColumnLayout {
+                id: display
+                anchors.fill: parent
+                anchors.margins: 10
+
+                Text {
+                    text: "## Display Settings";
+                    textFormat: Text.MarkdownText;
+                }
+
+                // fps
+                CheckBox {
+                    id: showFpsCtrl
+                    text: "Show FPS"
+
+                }
+
+                // clock
+                CheckBox {
+                    id: showClockCtrl
+                    text: "Show Clock"
                 }
             }
         }

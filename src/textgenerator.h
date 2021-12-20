@@ -30,7 +30,7 @@ class TextGenerator : public QObject {
     // char filter: move charcontext to own class
 
   public:
-    explicit TextGenerator(const int cols, const int rows, QObject* parent = nullptr);
+    explicit TextGenerator(QObject* parent = nullptr);
     ~TextGenerator();
 
     // SETTINGS
@@ -42,6 +42,7 @@ class TextGenerator : public QObject {
 
     int rows() const;
     void setRows(const int rows);
+
 
     QVariantList stepChances();
     void setStepChances(QVariantList stepChances);
@@ -57,6 +58,8 @@ class TextGenerator : public QObject {
     void repaintCharMatrix();
     Matrix repaintCharMatrixCols(int start, int end, Matrix &src);
     QString text();
+
+    int convolveNeighbours(int i, int j, Matrix &src);
 
     double fontSize() const;
     void setFontSize(double fontSize);
@@ -123,7 +126,7 @@ private:
 static QObject* themeSingletonProvider(QQmlEngine* engine, QJSEngine* scriptEngine) {
     Q_UNUSED(scriptEngine)
 
-    TextGenerator* singletonTheme = new TextGenerator(500, 80, engine);
+    TextGenerator* singletonTheme = new TextGenerator(engine);
     return singletonTheme;
 }
 

@@ -15,44 +15,47 @@ Window {
     title: qsTr("Character Arts")
 
     Component.onCompleted: {
-            window.showFullScreen();
+        window.showFullScreen();
     }
 
     color: "black";
 
     Text {
         id: fpsCounter
+        visible: settings.showFps
         anchors.top: parent.top
         anchors.right: parent.right
         text: TextGenerator.measuredFps.toFixed(1)
         color: "#00ff00"
     }
 
-    FontLoader { id: cascadia; source: "./Cascadia.ttf"; }
-    FontLoader { id: saxmono; source: "./saxmono.ttf"; }
+    FontLoader { id: cascadia; source: "qrc:/Cascadia.ttf"; }
+    FontLoader { id: saxmono; source: "qrc:/saxmono.ttf"; }
 
     Text {
         x: -10; y: -10;
         width: window.width + 20
         height: window.height + 20
-        color: "white";
+        color: "green";
         font.family: "Monospace";
         font.pixelSize: TextGenerator.fontSize;
+        font.bold: true
         wrapMode: "NoWrap";
-        // renderType: Text.NativeRendering;
+        renderType: Text.NativeRendering;
         textFormat: Text.PlainText
         antialiasing: false;
+        clip: true
 
         text: TextGenerator.text;
 
         MouseArea {
             anchors.fill: parent;
-            onClicked: options.visible = !options.visible;
+            onClicked: settings.visible = !settings.visible;
         }
     }
 
     SettingsDialog {
-        id: options;
+        id: settings;
         visible: false;
     }
 }

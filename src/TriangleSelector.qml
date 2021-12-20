@@ -43,8 +43,8 @@ ColumnLayout {
             source: triangle
             verticalOffset: +(width/2 - (5 + tri.h/2))
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "white" }
-                GradientStop { position: 0.66; color: "black" }
+                GradientStop { position: 0.0; color: "#002400" }
+                GradientStop { position: 0.1; color: "black" }
             }
         }
 
