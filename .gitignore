@@ -2,6 +2,12 @@
 *.d
 .user
 
+# builds
+build-*
+
+# user
+*.user*
+
 # Compiled Object files
 *.slo
 *.lo
