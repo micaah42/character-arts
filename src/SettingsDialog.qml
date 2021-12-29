@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.2
 import QtQuick.Controls 2.0
 import QtQuick.Window 2.12
 
-import com.text.generator 1.0
+// import com.text.generator 1.0
 
 Window {
     id: options;
@@ -52,10 +52,10 @@ Window {
                 // num resets
                 LabeledTextField {
                     text: "Resets:"
-                    startValue: TextGenerator.resetChance;
+                    startValue: Settings.resetChance;
                     placeholderText:  "resets per frame, e.g. 21";
                     onInputChanged: {
-                        TextGenerator.resetChance = input;
+                        Settings.resetChance = input;
                     }
                 }
             }
@@ -85,40 +85,40 @@ Window {
                 // fps
                 LabeledTextField {
                     text: "FPS:";
-                    startValue: TextGenerator.fps;
+                    startValue: Settings.fps;
                     placeholderText: "fps, e.g. 60";
                     onInputChanged: {
-                        TextGenerator.fps = input;
+                        Settings.fps = input;
                     }
                 }
 
                 // cols
                 LabeledTextField {
                     text: "Columns:";
-                    startValue: TextGenerator.cols;
+                    startValue: Settings.cols;
                     placeholderText: "num cols, e.g. 420";
                     onInputChanged: {
-                        TextGenerator.cols = input;
+                        Settings.cols = input;
                     }
                 }
 
                 // rows
                 LabeledTextField {
                     text: "Rows:";
-                    startValue: TextGenerator.rows;
+                    startValue: Settings.rows;
                     placeholderText: "num row, e.g. 69";
                     onInputChanged: {
-                        TextGenerator.rows = input;
+                        Settings.rows = input;
                     }
                 }
 
                 // fontsize
                 LabeledTextField {
                     text: "Font Size:";
-                    startValue: TextGenerator.fontSize;
+                    startValue: Settings.fontSize;
                     placeholderText:  "font size in px, e.g. 12";
                     onInputChanged: {
-                        TextGenerator.fontSize = input;
+                        Settings.fontSize = input;
                     }
                 }
             }

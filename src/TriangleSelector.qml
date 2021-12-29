@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Shapes 1.12
 import QtGraphicalEffects 1.12
 import QtQuick.Layouts 1.12
-import com.text.generator 1.0
+// import com.text.generator 1.0
 
 // transition chances
 ColumnLayout {
@@ -81,7 +81,7 @@ ColumnLayout {
                     down = 0;
                 }
 
-                TextGenerator.stepChances = [up, equal, down]
+                Settings.stepChances = [up, equal, down]
             }
 
             // circle
@@ -99,8 +99,13 @@ ColumnLayout {
     Text {
         id: stepView
         elide: Text.ElideMiddle
-        text: (100 * TextGenerator.stepChances[0]).toFixed(0) + " (down), "
-              + (100 * (TextGenerator.stepChances[1] - TextGenerator.stepChances[0])).toFixed(0) + " (stay), "
-              + (100 * (1 - TextGenerator.stepChances[1])).toFixed(0) + " (up)";
+        text:  {
+            var setsss = settings;
+            var stepChances = Settings.stepChances;
+            var string = (100 * stepChances[0]).toFixed(0) + " (down), "
+            + (100 * (stepChances[1] - stepChance[0])).toFixed(0) + " (equal), "
+            + (100 * (1 - stepChances[1])).toFixed(0) + " (up)";
+            return string;
+        }
     }
 }

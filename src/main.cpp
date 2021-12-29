@@ -1,8 +1,12 @@
+#include <QDebug>
+#include <QQmlContext>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
 
 #include "textgenerator.h"
+#include "applicationsettings.h"
+
+void printApplicationStart();
 
 int main(int argc, char* argv[]) {
     // qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
@@ -11,11 +15,17 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    qmlRegisterSingletonType<TextGenerator>("com.text.generator", 1, 0, "TextGenerator", themeSingletonProvider);
+    // qmlRegisterSingletonType<TextGenerator>("com.text.generator", 1, 0, "TextGenerator", themeSingletonProvider);
 
     QGuiApplication app(argc, argv);
+    app.setApplicationVersion("0.0.3");
+    printApplicationStart();
 
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("Settings", ApplicationSettings::I());
+    TextGenerator textGenerator(*ApplicationSettings::I());
+    engine.rootContext()->setContextProperty("TextGenerator", &textGenerator);
+
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
@@ -27,4 +37,18 @@ int main(int argc, char* argv[]) {
     engine.load(url);
 
     return app.exec();
+}
+
+void printApplicationStart()
+{
+    int width = 100;
+    qWarning().noquote() << QString().fill('#', width);
+    qWarning().noquote() << "##" + QString("").fill(' ', width - 4) + "##";
+    qWarning().noquote() << QString("##    CHARACTER ARTS").leftJustified(width - 2, ' ') + "##";
+    qWarning().noquote() << QString("##    ").leftJustified(width - 6, '-') + "    ##";
+    qWarning().noquote() << QString("##    by: michael / therushdude").leftJustified(width - 2, ' ') + "##";
+    qWarning().noquote() << QString("##    version: %1").arg(QCoreApplication::applicationVersion()).leftJustified(width - 2, ' ') + "##";
+    qWarning().noquote() << "##" + QString("").fill(' ', width - 4) + "##";
+    qWarning().noquote() << QString().fill('#', width);
+    qWarning().noquote() << "";
 }

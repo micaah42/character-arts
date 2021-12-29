@@ -2,9 +2,10 @@ import QtQuick 2.12
 import QtQuick.Controls 2.10
 import QtQuick.Window 2.12
 import QtQuick.VirtualKeyboard 2.4
+import QtGraphicalEffects 1.15
 
 import "."
-import com.text.generator 1.0
+// import com.text.generator 1.0
 
 Window {
     id: window
@@ -25,6 +26,7 @@ Window {
     Column {
         id: fpsCounter
         visible: settings.showFps
+        z: 100
 
         anchors.top: parent.top
         anchors.right: parent.right
@@ -43,12 +45,13 @@ Window {
 
     // CHARACTER DISPLAY
     Text {
+        id: display
         x: -10; y: -10;
         width: window.width + 20
         height: window.height + 20
         color: "green";
         font.family: "Monospace";
-        font.pixelSize: TextGenerator.fontSize;
+        font.pixelSize: Settings.fontSize;
         font.bold: true
         wrapMode: "NoWrap";
         renderType: Text.NativeRendering;
@@ -61,12 +64,12 @@ Window {
         Keys.onPressed: {
             // TODO: feed key event to cpp singleton
             if (event.key === Qt.Key_F11) {
-                console.log(window.flags, window.visibility, Window.FullScreen)
                 window.visibility === Window.FullScreen ? window.showNormal() : window.showFullScreen();
                 window.flags = window.flags === Qt.Window ? Qt.Window | Qt.FramelessWindowHint : Qt.Window;
             }
-            else if (event.key === Qt.Key_Escape)
+            else if (event.key === Qt.Key_Escape) {
                 settings.visible = !settings.visible;
+            }
         }
 
         MouseArea {
@@ -76,6 +79,14 @@ Window {
                     settings.visible = false;
             }
         }
+    }
+
+    Glow {
+        anchors.fill: display
+        opacity: 0.50
+        source: display
+        color: display.color
+        radius: 2.5
     }
 
     // SETTINGS DIALOG
