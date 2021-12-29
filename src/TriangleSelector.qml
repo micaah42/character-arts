@@ -61,20 +61,21 @@ ColumnLayout {
                 equal = (2*((Math.sqrt(3)*tri.d*tri.d)/2 + 10*tri.d))/(Math.sqrt(3)*tri.d*tri.d) - (2*mouseY)/(Math.sqrt(3)*tri.d);
                 down = (2*(-1/4*Math.sqrt(3)*tri.d*tri.d - 5*Math.sqrt(3)*tri.d - 5*tri.d))/(Math.sqrt(3)*tri.d*tri.d) + mouseX/tri.d + mouseY/(Math.sqrt(3)*tri.d);
 
+                var sum;
                 if (up < 0) {
-                    var sum = equal + down;
+                    sum = equal + down;
+                    up = 0;
                     equal /= sum;
                     down /= sum;
-                    up = 0;
                 }
                 if (equal < 0) {
-                    var sum = up + down;
+                    sum = up + down;
                     up /= sum;
-                    down /= sum;
                     equal = 0;
+                    down /= sum;
                 }
                 if (down < 0) {
-                    var sum = up + equal;
+                    sum = up + equal;
                     up /= sum;
                     equal /= sum;
                     down = 0;

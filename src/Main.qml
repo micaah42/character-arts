@@ -61,8 +61,8 @@ Window {
         Keys.onPressed: {
             // TODO: feed key event to cpp singleton
             if (event.key === Qt.Key_F11) {
-                console.log(window.flags, window.visibility)
-                window.visibility === Qt.WindowFullScreen ? window.showMinimized() : window.showFullScreen();
+                console.log(window.flags, window.visibility, Window.FullScreen)
+                window.visibility === Window.FullScreen ? window.showNormal() : window.showFullScreen();
                 window.flags = window.flags === Qt.Window ? Qt.Window | Qt.FramelessWindowHint : Qt.Window;
             }
             else if (event.key === Qt.Key_Escape)

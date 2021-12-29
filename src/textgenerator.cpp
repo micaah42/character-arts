@@ -29,7 +29,7 @@ TextGenerator::~TextGenerator() {
 }
 
 int TextGenerator::distributedChoice(float* dist, int size) {
-    float randD = rand() / RAND_MAX;
+    float randD = (float)rand() / (float)RAND_MAX;
     if (randD < dist[0])
         return 0;
     else if (randD < dist[1])
@@ -91,7 +91,7 @@ void TextGenerator::repaintCharMatrix() {
     Matrix &dst = mFrameId % 2 ? mCharImageA : mCharImageB;
     Matrix &src = mFrameId % 2 ? mCharImageB : mCharImageA;
 
-    int numThreads = 3;
+    int numThreads = 2;
     QList<QFuture<Matrix>> futures;
     for (int i = 0; i < numThreads; i++) {
         int start = i * (mCols / numThreads);
@@ -216,6 +216,7 @@ void TextGenerator::setStepChances(QVariantList stepChances) {
     Q_ASSERT(stepChances.length() == 3);
     mStepChances[0] = stepChances[0].toDouble();
     mStepChances[1] = stepChances[1].toDouble() + mStepChances[0];
+    qInfo() << "down:" << mStepChances[0] << "equal:" << mStepChances[1] - mStepChances[0] << "up:" << 1 - mStepChances[1];
     emit stepChancesChanged();
 }
 
