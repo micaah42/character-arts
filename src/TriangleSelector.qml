@@ -100,11 +100,11 @@ ColumnLayout {
         id: stepView
         elide: Text.ElideMiddle
         text:  {
-            var setsss = settings;
             var stepChances = Settings.stepChances;
-            var string = (100 * stepChances[0]).toFixed(0) + " (down), "
-            + (100 * (stepChances[1] - stepChance[0])).toFixed(0) + " (equal), "
-            + (100 * (1 - stepChances[1])).toFixed(0) + " (up)";
+            var string =
+                    (100 * stepChances[0]).toFixed(0) + " (down), "
+                  + (100 * stepChances[1]).toFixed(0) + " (equal), "
+                  + (100 * stepChances[2]).toFixed(0) + " (up)";
             return string;
         }
     }

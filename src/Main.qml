@@ -46,7 +46,7 @@ Window {
     // CHARACTER DISPLAY
     Text {
         id: display
-        x: -10; y: -10;
+        x: -10; y: -10; z: 1;
         width: window.width + 20
         height: window.height + 20
         color: "green";
@@ -82,11 +82,13 @@ Window {
     }
 
     Glow {
+        z: 0
         anchors.fill: display
-        opacity: 0.50
+        opacity: 0.8
         source: display
-        color: display.color
-        radius: 2.5
+        color: "#0000aa"
+        radius: 5.5
+        samples: 17
     }
 
     // SETTINGS DIALOG
