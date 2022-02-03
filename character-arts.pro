@@ -1,5 +1,4 @@
-QT += quick virtualkeyboard \
-    widgets concurrent
+QT += quick widgets concurrent
 
 CONFIG += c++11
 
@@ -7,13 +6,20 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += \
-        applicationsettings.cpp \
-        main.cpp \
-        textgenerator.cpp
+HEADERS += \
+        # src/applicationsettings.h \
+        src/dynamicsettings.h \
+        src/textgenerator.h
 
-RESOURCES += qml.qrc \
-    ../fonts/fonts.qrc
+SOURCES += \
+        # src/applicationsettings.cpp \
+        src/dynamicsettings.cpp \
+        src/textgenerator.cpp \
+        src/main.cpp
+
+
+RESOURCES += qml/qml.qrc \
+             fonts/fonts.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
