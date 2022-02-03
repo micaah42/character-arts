@@ -4,5 +4,6 @@
         <file>SettingsDialog.qml</file>
         <file>LabeledTextField.qml</file>
         <file>TriangleSelector.qml</file>
+        <file>SettingsView.qml</file>
     </qresource>
 </RCC>

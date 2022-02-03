@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.10
 import QtQuick.Window 2.12
-import QtQuick.VirtualKeyboard 2.4
+// import QtQuick.VirtualKeyboard 2.4
 import QtGraphicalEffects 1.15
 
 import "."
@@ -50,8 +50,8 @@ Window {
         width: window.width + 20
         height: window.height + 20
         color: "green";
-        font.family: "Monospace";
-        font.pixelSize: Settings.fontSize;
+        font.family: "Cascadia";
+        font.pixelSize: 8;
         font.bold: true
         wrapMode: "NoWrap";
         renderType: Text.NativeRendering;
@@ -83,19 +83,22 @@ Window {
 
     Glow {
         z: 0
+        visible: false
         anchors.fill: display
-        opacity: 0.8
+        opacity: 0.5
         source: display
         color: "#0000aa"
         radius: 5.5
-        samples: 17
+        samples: 27
     }
 
     // SETTINGS DIALOG
+    /*
     SettingsDialog {
         id: settings;
         visible: false;
     }
+    */
 
     // MEASURING FPS
     property real fps: 0
@@ -107,5 +110,11 @@ Window {
 
         fps = 0.1 * newFps + 0.9 * fps;
         lastSwap = now;
+    }
+
+    SettingsView {
+        height: parent.height
+        width: parent.width / 4
+        anchors.right: parent.right
     }
 }

@@ -52,7 +52,7 @@ Window {
                 // num resets
                 LabeledTextField {
                     text: "Resets:"
-                    startValue: Settings.resetChance;
+                    startValue: setti.resetChance;
                     placeholderText:  "resets per frame, e.g. 21";
                     onInputChanged: {
                         Settings.resetChance = input;
