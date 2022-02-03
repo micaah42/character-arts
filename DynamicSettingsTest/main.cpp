@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
         settings.changeSetting("b.1", b1.toString() + "_");
     });
     b1Changer.setInterval(5000);
-    // b1Changer.start();
+    b1Changer.start();
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

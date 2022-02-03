@@ -52,6 +52,7 @@ Window {
     SettingsView {
         anchors.top: parent.top
         anchors.right: parent.right
+        anchors.margins: 5
 
         height: parent.height
         width: parent.width / 3
