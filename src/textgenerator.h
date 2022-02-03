@@ -9,44 +9,68 @@
 #include <QElapsedTimer>
 #include <QTimer>
 
-#include "applicationsettings.h"
+#include "dynamicsettings.h"
 
-typedef QList<QList<int>> Matrix;
+class Matrix : public QVector<quint8>
+{
+public:
+    explicit Matrix(const int rows = 0, const int cols = 0);
 
+    quint8 &operator()(int i, int j);
+    quint8 operator()(int i, int j) const;
 
-class TextGenerator : public QObject {
+    int rows() const;
+    void setRows(int newRows);
+
+    int cols() const;
+    void setCols(int newCols);
+
+    void appendRows(const Matrix &rows);
+    void clearRows();
+
+private:
+    int _rows;
+    int _cols;
+};
+
+class TextGenerator : public QObject
+{
     Q_OBJECT
 
     // text generator output
     Q_PROPERTY(QString text READ text NOTIFY textChanged)
     Q_PROPERTY(double measuredFps READ measuredFps NOTIFY measuredFpsChanged)
 
-  public:
-    explicit TextGenerator(ApplicationSettings& sttgs, QObject* parent = nullptr);
+public:
+    explicit TextGenerator(DynamicSettings &sttgs, QObject *parent = nullptr);
     ~TextGenerator();
 
     // DRAWING
     void repaintCharMatrix();
-    Matrix repaintCharMatrixCols(int start, int end, Matrix &src);
+    Matrix repaintCharMatrixRows(int start, int end, Matrix &src);
     QString text();
 
     int convolveNeighbours(int i, int j, Matrix &src);
     double measuredFps() const;
 
-
 signals:
     void textChanged();
     void measuredFpsChanged();
 
-
 private:
     // settings
-    ApplicationSettings& _sttgs;
+    float _fps;
+    float _stepChances[2];
+    int _numResets;
+    QString _charContext;
+
+    DynamicSettings &_settings;
+    void onSettingChanged(const QString &setting);
 
     // the 'images' (two buffers to avoid reallocation)
-    Matrix mCharImageA;
-    Matrix mCharImageB;
-    void initCharMaps();
+    Matrix _charbuf0;
+    Matrix _charbuf1;
+    void initBuffers();
 
     // Animation stuff
     int mFrameId;
@@ -58,8 +82,7 @@ private:
 
     bool mRedrawing;
     QElapsedTimer mFpsTimer;
-    double mMeasuredFps;
-    int m_fps;
+    double _redrawTime;
 };
 
 #endif // TEXTGENERATOR_H

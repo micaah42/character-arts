@@ -20,6 +20,9 @@ const QVariantMap DynamicSettings::map()
 
 QVariant DynamicSettings::value(const QString &setting)
 {
+    if (!_values.contains(setting)) {
+        return QVariant::Invalid;
+    }
     return _values[setting];
 }
 
@@ -48,7 +51,8 @@ void DynamicSettings::changeSetting(const QString &setting, QVariant value)
         return;
     }
     if (!value.convert(_values[setting].type())) {
-        qCCritical(self) << "Setting has incompatible type:" << _values[setting].typeName() << value.typeName();
+        qCCritical(self) << "Setting has incompatible type:" << setting << "|"
+                         << _values[setting].typeName() << value.typeName();
         emit valueChanged(setting);
         return;
     }

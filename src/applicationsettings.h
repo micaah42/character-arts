@@ -63,7 +63,7 @@ signals:
 
 
 private:
-    ApplicationSettings(QObject* parent = nullptr);
+    explicit ApplicationSettings(QObject* parent = nullptr);
     static ApplicationSettings* instance;
 
     // how many chars in the matrix are set to max for each frame

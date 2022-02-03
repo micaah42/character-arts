@@ -4,7 +4,7 @@
 #include <QQmlApplicationEngine>
 
 #include "textgenerator.h"
-#include "applicationsettings.h"
+#include "dynamicsettings.h"
 
 void printApplicationStart();
 
@@ -15,15 +15,17 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    // qmlRegisterSingletonType<TextGenerator>("com.text.generator", 1, 0, "TextGenerator", themeSingletonProvider);
-
     QGuiApplication app(argc, argv);
     app.setApplicationVersion("0.0.3");
     printApplicationStart();
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("Settings", ApplicationSettings::I());
-    TextGenerator textGenerator(*ApplicationSettings::I());
+
+    // load the settings first
+    DynamicSettings settings;
+    engine.rootContext()->setContextProperty("settings", &settings);
+
+    TextGenerator textGenerator(settings);
     engine.rootContext()->setContextProperty("TextGenerator", &textGenerator);
 
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
