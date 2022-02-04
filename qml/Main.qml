@@ -25,7 +25,7 @@ Window {
     // FPS COUNTER
     Column {
         id: fpsCounter
-        visible: settings.showFps
+        visible: false
         z: 100
 
         anchors.top: parent.top
