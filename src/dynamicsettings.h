@@ -23,6 +23,10 @@ public:
     Q_INVOKABLE void subscribeSetting(const QString &setting, QVariant& subsriber);
     Q_INVOKABLE void unsubsribeSetting(const QString &setting, QVariant& subscriber);
 
+    // save current settings
+    Q_INVOKABLE void saveSettings(const QString &filename);
+    Q_INVOKABLE void loadSettings(const QString &filename);
+
     const QVariantList keys() const;
 
 signals:

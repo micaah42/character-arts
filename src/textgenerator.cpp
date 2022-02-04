@@ -28,7 +28,9 @@ TextGenerator::TextGenerator(DynamicSettings &sttgs, QObject *parent)
     _settings.createNewSetting("generator.cols", 320);
     _settings.createNewSetting("generator.numresets", 150);
     _settings.createNewSetting("generator.charcontext", " ..-~=+*><//|\\(){}08&$#");
-    _settings.createNewSetting("generator.stepchances", QVariantList{1 / 3., 2. / 3.});
+    //_settings.createNewSetting("generator.stepchances", QVariantList{1 / 3., 2. / 3.});
+    _stepChances[0] = 0.4;
+    _stepChances[1] = 0.75;
 }
 
 TextGenerator::~TextGenerator() {}

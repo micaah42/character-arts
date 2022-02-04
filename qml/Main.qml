@@ -18,8 +18,8 @@ Window {
     color: "black";
 
     // FONT LOADING
-    FontLoader { id: cascadia; source: "qrc:/Cascadia.ttf"; }
-    FontLoader { id: saxmono; source: "qrc:/saxmono.ttf"; }
+    FontLoader { name: "cascadia"; source: "Cascadia.ttf"; }
+    FontLoader { id: saxmono; source: "/saxmono.ttf"; }
 
 
     // FPS COUNTER
@@ -49,56 +49,66 @@ Window {
         x: -10; y: -10; z: 1;
         width: window.width + 20
         height: window.height + 20
-        color: "green";
-        font.family: "Cascadia";
-        font.pixelSize: 8;
-        font.bold: true
+
         wrapMode: "NoWrap";
-        renderType: Text.NativeRendering;
+        // renderType: Text.NativeRendering;
         textFormat: Text.PlainText
-        antialiasing: false;
-        focus: true
+        antialiasing: true;
 
+
+        // connect text generator
+        // ---------------------
         text: TextGenerator.text;
+        // ---------------------
 
-        Keys.onPressed: {
-            // TODO: feed key event to cpp singleton
-            if (event.key === Qt.Key_F11) {
-                window.visibility === Window.FullScreen ? window.showNormal() : window.showFullScreen();
-                window.flags = window.flags === Qt.Window ? Qt.Window | Qt.FramelessWindowHint : Qt.Window;
-            }
-            else if (event.key === Qt.Key_Escape) {
-                settings.visible = !settings.visible;
-            }
+        Component.onCompleted: {
+            settings.createNewSetting("display.color", "#11dd11")
+            settings.createNewSetting("display.fontfamily", "Ubuntu Mono")
+            settings.createNewSetting("display.fontpixelSize", 8)
+            settings.createNewSetting("display.fontbold", false)
         }
+        Connections {
+            target: settings
+            function onValueChanged(setting) {
+                var [group, name] = setting.split(".");
+                if (group !== "display") {
+                    return;
+                }
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                if (settings.visible)
-                    settings.visible = false;
+                if (name.startsWith("font")) {
+                    display.font[name.replace("font", "")] = settings.value(setting);
+                }
+                else {
+                    display[name] = settings.value(setting);
+                }
             }
         }
     }
 
     Glow {
+        id: glow
         z: 0
-        visible: false
         anchors.fill: display
-        opacity: 0.5
         source: display
-        color: "#0000aa"
-        radius: 5.5
-        samples: 27
-    }
 
-    // SETTINGS DIALOG
-    /*
-    SettingsDialog {
-        id: settings;
-        visible: false;
+        Component.onCompleted: {
+            settings.createNewSetting("glow.visible", false);
+            settings.createNewSetting("glow.color", "#00ff00");
+            settings.createNewSetting("glow.radius", 5.5);
+            settings.createNewSetting("glow.samples", 27)
+            settings.createNewSetting("glow.opacity", 0.5)
+        }
+        Connections {
+            target: settings
+            function onValueChanged(setting) {
+                var [group, name] = setting.split(".");
+                if (group !== "glow") {
+                    return;
+                }
+                glow[name] = settings.value(setting);
+            }
+        }
     }
-    */
 
     // MEASURING FPS
     property real fps: 0
@@ -112,9 +122,30 @@ Window {
         lastSwap = now;
     }
 
-    SettingsView {
-        height: parent.height
-        width: parent.width / 4
-        anchors.right: parent.right
+
+    Loader {
+        id: settingsViewLoader
+        active: false
+        // the settings view should be created after all settings where created
+        sourceComponent: SettingsView {
+            height: parent.height
+            width: 210
+            edge: Qt.RightEdge
+            //opacity: 0
+            visible: true
+        }
+    }
+
+    Connections {
+        target: keyListener
+        function onKeyPressed(key) {
+            if (key === Qt.Key_F11) {
+                window.visibility === Window.FullScreen ? window.showNormal() : window.showFullScreen();
+                window.flags = window.flags === Qt.Window ? Qt.Window | Qt.FramelessWindowHint : Qt.Window;
+            }
+            if (key === Qt.Key_Left) {
+                settingsViewLoader.active = true
+            }
+        }
     }
 }

@@ -3,8 +3,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include "textgenerator.h"
 #include "dynamicsettings.h"
+#include "keylistener.h"
+#include "textgenerator.h"
 
 void printApplicationStart();
 
@@ -25,8 +26,14 @@ int main(int argc, char* argv[]) {
     DynamicSettings settings;
     engine.rootContext()->setContextProperty("settings", &settings);
 
+    // start the text generator
     TextGenerator textGenerator(settings);
     engine.rootContext()->setContextProperty("TextGenerator", &textGenerator);
+
+    // install the keylistener
+    KeyListener keyListener;
+    app.installEventFilter(&keyListener);
+    engine.rootContext()->setContextProperty("keyListener", &keyListener);
 
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     QObject::connect(

@@ -1,7 +1,9 @@
 #include "dynamicsettings.h"
 
 #include <QDebug>
+#include <QFile>
 #include <QLoggingCategory>
+#include <QSettings>
 
 namespace  {
     Q_LOGGING_CATEGORY(self, "dynamicsettings");
@@ -53,7 +55,7 @@ void DynamicSettings::changeSetting(const QString &setting, QVariant value)
     if (!value.convert(_values[setting].type())) {
         qCCritical(self) << "Setting has incompatible type:" << setting << "|"
                          << _values[setting].typeName() << value.typeName();
-        emit valueChanged(setting);
+        // emit valueChanged(setting);
         return;
     }
 
@@ -102,11 +104,30 @@ void DynamicSettings::unsubsribeSetting(const QString &setting, QVariant &subscr
     _subscribers[setting].removeOne(&subscriber);
 }
 
+void DynamicSettings::saveSettings(const QString &filename)
+{
+    QString filepath = "saves/" + filename;
+    QSettings settings(filepath, QSettings::IniFormat);
+    for (auto keyvalue = _values.keyValueBegin(); keyvalue != _values.keyValueEnd(); keyvalue++) {
+        settings.setValue(keyvalue->first, keyvalue->second);
+    }
+    settings.sync();
+}
+
+void DynamicSettings::loadSettings(const QString &filename)
+{
+    QString filepath = "saves/" + filename;
+    QSettings settings(filepath, QSettings::IniFormat);
+    for (auto const &key : settings.allKeys()) {
+        changeSetting(key, settings.value(key));
+    }
+}
+
 const QVariantList DynamicSettings::keys() const
 {
     QVariantList keys;
-    for (auto key : _values.keys()) {
-        keys.append(key);
+    for (auto key = _values.keyBegin(); key != _values.keyEnd(); key++) {
+        keys.append(*key);
     }
 
     return keys;

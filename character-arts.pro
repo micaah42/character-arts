@@ -9,11 +9,13 @@ CONFIG += c++11
 HEADERS += \
         # src/applicationsettings.h \
         src/dynamicsettings.h \
+        src/keylistener.h \
         src/textgenerator.h
 
 SOURCES += \
         # src/applicationsettings.cpp \
         src/dynamicsettings.cpp \
+        src/keylistener.cpp \
         src/textgenerator.cpp \
         src/main.cpp
 
