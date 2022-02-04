@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     QGuiApplication app(argc, argv);
-    app.setApplicationVersion("0.0.3");
+    app.setApplicationVersion("0.1.0");
     printApplicationStart();
 
     QQmlApplicationEngine engine;

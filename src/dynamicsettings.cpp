@@ -106,6 +106,7 @@ void DynamicSettings::unsubsribeSetting(const QString &setting, QVariant &subscr
 
 void DynamicSettings::saveSettings(const QString &filename)
 {
+    qCWarning(self) << "saving to file:" << filename;
     QString filepath = "saves/" + filename;
     QSettings settings(filepath, QSettings::IniFormat);
     for (auto keyvalue = _values.keyValueBegin(); keyvalue != _values.keyValueEnd(); keyvalue++) {
@@ -116,6 +117,7 @@ void DynamicSettings::saveSettings(const QString &filename)
 
 void DynamicSettings::loadSettings(const QString &filename)
 {
+    qCWarning(self) << "loading file:" << filename;
     QString filepath = "saves/" + filename;
     QSettings settings(filepath, QSettings::IniFormat);
     for (auto const &key : settings.allKeys()) {
